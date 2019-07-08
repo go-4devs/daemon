@@ -1,0 +1,12 @@
+language: go
+
+go:
+- 1.x
+- 1.12.x
+
+before_install:
+- go mod download
+
+scripts:
+- go test ./...
+
