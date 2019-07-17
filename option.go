@@ -8,13 +8,14 @@ type Option func(*config)
 //Setting job settings
 type Setting interface {
 	IsProcessed(err error) bool
-	Do() <-chan struct{}
+	Do() <-chan time.Time
+	Reload(s func(time.Time) time.Duration)
 }
 
-//WithReload set reload freq
-func WithReload(r func() <-chan time.Duration) Option {
+//WithSchedule set delay and frequency Run job
+func WithSchedule(next func(time.Time) time.Duration) Option {
 	return func(config *config) {
-		config.reload = r
+		config.Reload(next)
 	}
 }
 
@@ -29,7 +30,9 @@ func WithDelay(delay time.Duration) Option {
 //WithFreq set Frequency Run job
 func WithFreq(freq time.Duration) Option {
 	return func(config *config) {
-		config.freq = freq
+		config.freq = func(time.Time) time.Duration {
+			return freq
+		}
 	}
 }
 
@@ -42,26 +45,26 @@ func WithHandleErr(f func(err error)) Option {
 
 func newConfig() *config {
 	return &config{
-		reload: func() <-chan time.Duration {
-			return nil
-		},
-		close: make(chan struct{}),
-		do:    make(chan struct{}),
 		delay: time.Nanosecond,
 		hErr:  func(err error) {},
 		timer: NewTicker(time.Nanosecond),
-		freq:  time.Second,
+		freq: func(time.Time) time.Duration {
+			return time.Second
+		},
 	}
 }
 
 type config struct {
-	delay  time.Duration
-	freq   time.Duration
-	reload func() <-chan time.Duration
-	hErr   func(err error)
-	timer  Timer
-	close  chan struct{}
-	do     chan struct{}
+	delay time.Duration
+	freq  func(time.Time) time.Duration
+	hErr  func(err error)
+	timer Timer
+}
+
+func (o *config) Reload(s func(time.Time) time.Duration) {
+	o.freq = s
+	o.delay = s(time.Now())
+	o.timer.Reset(o.delay)
 }
 
 func (o *config) IsProcessed(err error) bool {
@@ -72,23 +75,11 @@ func (o *config) IsProcessed(err error) bool {
 	case *delay:
 		o.timer.Reset(tr.d)
 	default:
-		o.timer.Reset(o.freq)
+		o.timer.Reset(o.freq(time.Now()))
 	}
 	return true
 }
 
-func (o *config) Do() <-chan struct{} {
-	go func() {
-		for {
-			select {
-			case t := <-o.reload():
-				o.timer.Reset(t)
-			case _, ok := <-o.timer.Tick():
-				if ok {
-					o.do <- struct{}{}
-				}
-			}
-		}
-	}()
-	return o.do
+func (o *config) Do() <-chan time.Time {
+	return o.timer.Tick()
 }

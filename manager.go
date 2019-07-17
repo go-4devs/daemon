@@ -102,8 +102,8 @@ func (m *manager) DoCtx(ctx context.Context, j Job, opts ...Option) {
 				return
 			case <-ctx.Done():
 				return
-			case <-s.Do():
-				if !s.IsProcessed(m.runHandle(ctx, j.RunCtx)) {
+			case _, ok := <-s.Do():
+				if ok && !s.IsProcessed(m.runHandle(ctx, j.RunCtx)) {
 					return
 				}
 			}
