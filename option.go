@@ -2,24 +2,24 @@ package daemon
 
 import "time"
 
-//Option for the do job
+// Option for the do job
 type Option func(*config)
 
-//Setting job settings
+// Setting job settings
 type Setting interface {
 	IsProcessed(err error) bool
 	Do() <-chan time.Time
 	Reload(s func(time.Time) time.Duration)
 }
 
-//WithSchedule set delay and frequency Run job
+// WithSchedule set delay and frequency Run job
 func WithSchedule(next func(time.Time) time.Duration) Option {
 	return func(config *config) {
 		config.Reload(next)
 	}
 }
 
-//WithDelay set delay Run job
+// WithDelay set delay Run job
 func WithDelay(delay time.Duration) Option {
 	return func(config *config) {
 		config.timer.Reset(delay)
@@ -27,7 +27,7 @@ func WithDelay(delay time.Duration) Option {
 	}
 }
 
-//WithFreq set Frequency Run job
+// WithFreq set Frequency Run job
 func WithFreq(freq time.Duration) Option {
 	return func(config *config) {
 		config.freq = func(time.Time) time.Duration {
@@ -36,7 +36,7 @@ func WithFreq(freq time.Duration) Option {
 	}
 }
 
-//WithHandleErr replace Handle errors
+// WithHandleErr replace Handle errors
 func WithHandleErr(f func(err error)) Option {
 	return func(config *config) {
 		config.hErr = f

@@ -10,28 +10,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var ctx = context.Background()
-
 var (
+	ctx           = context.Background()
 	errJob        = errors.New("error job")
 	jobName       = "job name"
 	jobNameOption = WithJName(jobName)
 )
 
 func ExampleNewManager() {
-	ctx := context.Background()
 	m := NewManager()
 	j := NewJob(func(ctx context.Context) error {
-		//do some job
+		// do some job
 		return nil
 	}, WithJName("awesome job"))
 
-	m.DoCtx(ctx, j,
+	m.DoCtx(context.Background(), j,
 		// set frequency run job
 		WithFreq(time.Minute),
-		//set delay for first run job
+		// set delay for first run job
 		WithDelay(time.Second),
-		//set handler if run job return err
+		// set handler if run job return err
 		WithHandleErr(func(err error) {
 			log.Println(err)
 		}),
@@ -40,51 +38,49 @@ func ExampleNewManager() {
 }
 
 func ExampleNewManager_withClose() {
-	ctx := context.Background()
 	m := NewManager()
 	defer func() {
 		_ = m.Close()
 	}()
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some job
+		// do some job
 		return nil
 	}, WithJName("awesome job"))
 
-	m.DoCtx(ctx, j, WithFreq(time.Minute))
+	m.DoCtx(context.Background(), j, WithFreq(time.Minute))
 	exDone := make(chan struct{})
-	//some blocked process
+	// some blocked process
 	<-exDone
 }
 
 func ExampleNewManager_withOptions() {
-	ctx := context.Background()
 
 	middleware := NewMiddleware(func(ctx context.Context, next Run) error {
-		//do some before run all job
+		// do some before run all job
 		err := next(ctx)
-		//do some after run all job
+		// do some after run all job
 		return err
 	}, func(ctx context.Context, next Run) error {
-		//do some before close job
+		// do some before close job
 		err := next(ctx)
-		//do some after close job
+		// do some after close job
 		return err
 	})
 	m := NewManager(
 		WithMMiddleware(middleware),
 		WithHandleCloseErr(func(err error) {
-			//do some if close return err
+			// do some if close return err
 			log.Println(err)
 		}),
 	)
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some job
+		// do some job
 		return nil
 	}, WithJName("awesome job"))
 
-	m.DoCtx(ctx, j, WithFreq(time.Minute))
+	m.DoCtx(context.Background(), j, WithFreq(time.Minute))
 }
 
 func createJob(count *int, d time.Duration, err error, opts ...JOption) Job {

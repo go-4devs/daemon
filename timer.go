@@ -2,14 +2,14 @@ package daemon
 
 import "time"
 
-//Timer for the Run job
+// Timer for the Run job
 type Timer interface {
 	Tick() <-chan time.Time
 	Reset(d time.Duration)
 	Stop()
 }
 
-//NewTicker create new ticker based on time.ticker
+// NewTicker create new ticker based on time.ticker
 func NewTicker(freq time.Duration) Timer {
 	return &ticker{
 		freq:   freq,

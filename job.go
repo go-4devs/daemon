@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-//Job interface for the do by manager
+// Job interface for the do by manager
 type Job interface {
 	RunCtx(ctx context.Context) error
 	CloseCtx(ctx context.Context) error
@@ -16,10 +16,10 @@ type Job interface {
 	Configure(opts ...Option) Setting
 }
 
-//JOption configure job
+// JOption configure job
 type JOption func(*job)
 
-//NewJob create new job with options
+// NewJob create new job with options
 func NewJob(r Run, opts ...JOption) Job {
 	j := &job{
 		r: r,
@@ -35,30 +35,30 @@ func NewJob(r Run, opts ...JOption) Job {
 		j.name = getFuncName(r)
 	}
 	if j.mw.close == nil {
-		j.mw.close = defaultHandle
+		j.mw.close = DefaultHandle
 	}
 	if j.mw.run == nil {
-		j.mw.run = defaultHandle
+		j.mw.run = DefaultHandle
 	}
 
 	return j
 }
 
-//WithJName set job name
+// WithJName set job name
 func WithJName(name string) JOption {
 	return func(i *job) {
 		i.name = name
 	}
 }
 
-//WithJClose set func which execute after job stop
+// WithJClose set func which execute after job stop
 func WithJClose(cl func(ctx context.Context) error) JOption {
 	return func(i *job) {
 		i.c = cl
 	}
 }
 
-//WithJMiddleware add middleware to job
+// WithJMiddleware add middleware to job
 func WithJMiddleware(f ...Middleware) JOption {
 	return func(i *job) {
 		closes := make([]Handle, 0)
@@ -67,7 +67,7 @@ func WithJMiddleware(f ...Middleware) JOption {
 			runs = append(runs, i.mw.run)
 		}
 		if i.mw.close != nil {
-			closes = append(runs, i.mw.close)
+			closes = append(closes, i.mw.close)
 		}
 		for _, p := range f {
 			if p.close != nil {
@@ -86,7 +86,7 @@ func WithJMiddleware(f ...Middleware) JOption {
 	}
 }
 
-//WithJOption set options job
+// WithJOption set options job
 func WithJOption(opts ...Option) JOption {
 	return func(i *job) {
 		for _, opt := range opts {
@@ -95,15 +95,13 @@ func WithJOption(opts ...Option) JOption {
 	}
 }
 
-var replacer = strings.NewReplacer("(*", "", ")", "")
-
 func getFuncName(i interface{}) string {
 	callerName := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	if callerName == "" {
 		return "-"
 	}
 
-	callerName = replacer.Replace(callerName)
+	callerName = strings.NewReplacer("(*", "", ")", "").Replace(callerName)
 	lastIndex := strings.LastIndex(callerName, "/")
 	if lastIndex != -1 {
 		callerName = callerName[lastIndex+1:]

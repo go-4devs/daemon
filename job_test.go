@@ -11,7 +11,7 @@ func ExampleNewJob() {
 	m := NewManager()
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some
+		// do some
 		return nil
 	}, WithJName("my awesome job"))
 
@@ -25,10 +25,10 @@ func ExampleNewJob_withClose() {
 	m := NewManager()
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some
+		// do some
 		return nil
 	}, WithJClose(func(ctx context.Context) error {
-		//do some after job stop
+		// do some after job stop
 		return nil
 	}))
 
@@ -41,23 +41,23 @@ func ExampleNewJob_withMiddleware() {
 	ctx := context.Background()
 	m := NewManager()
 	mw := NewMiddleware(func(ctx context.Context, next Run) error {
-		//do some before run func
+		// do some before run func
 		err := next(ctx)
-		//do some after run func
+		// do some after run func
 		return err
 	}, func(ctx context.Context, next Run) error {
-		//do some before close func
+		// do some before close func
 		err := next(ctx)
-		//do some after close func
+		// do some after close func
 		return err
 	})
-	//middleware execute only run func
+	// middleware execute only run func
 	mwr := NewMiddleware(func(ctx context.Context, next Run) error {
 		return next(ctx)
 	}, nil)
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some
+		// do some
 		return nil
 	}, WithJMiddleware(mw, mwr))
 
@@ -66,18 +66,18 @@ func ExampleNewJob_withMiddleware() {
 	m.Wait()
 }
 
-//all option may replace then DoCtx
+// all option may replace then DoCtx
 func ExampleNewJob_option() {
 	ctx := context.Background()
 	m := NewManager()
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some
+		// do some
 		return nil
 	},
-		//set freq run job
+		// set freq run job
 		WithJOption(WithFreq(time.Minute)),
-		//set delay to start job
+		// set delay to start job
 		WithJOption(WithDelay(time.Minute)),
 	)
 
@@ -91,7 +91,7 @@ func ExampleNewJob_stop() {
 	m := NewManager()
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some
+		// do some
 		return StopJob(errors.New("some reason"))
 	})
 
@@ -106,7 +106,7 @@ func ExampleNewJob_delay() {
 	m := NewManager()
 
 	j := NewJob(func(ctx context.Context) error {
-		//do some
+		// do some
 		return DelayJob(time.Hour, errors.New("some reason"))
 	})
 

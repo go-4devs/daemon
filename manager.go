@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-var defaultHandle Handle = func(ctx context.Context, next Run) error {
+var DefaultHandle Handle = func(ctx context.Context, next Run) error {
 	return next(ctx)
 }
 
@@ -16,17 +16,17 @@ type Run func(ctx context.Context) error
 // Handle middleware interface
 type Handle func(ctx context.Context, next Run) error
 
-//Manager monitoring do job
+// Manager monitoring do job
 type Manager interface {
 	DoCtx(ctx context.Context, j Job, o ...Option)
 	Wait()
 	io.Closer
 }
 
-//MOption configure manager
+// MOption configure manager
 type MOption func(*manager)
 
-//NewManager create new manager with options
+// NewManager create new manager with options
 func NewManager(opts ...MOption) Manager {
 	m := &manager{
 		close:    make(chan struct{}),
@@ -36,16 +36,16 @@ func NewManager(opts ...MOption) Manager {
 		opt(m)
 	}
 	if m.closeHandle == nil {
-		m.closeHandle = defaultHandle
+		m.closeHandle = DefaultHandle
 	}
 	if m.runHandle == nil {
-		m.runHandle = defaultHandle
+		m.runHandle = DefaultHandle
 	}
 
 	return m
 }
 
-//WithMMiddleware set middleware to manager
+// WithMMiddleware set middleware to manager
 func WithMMiddleware(m ...Middleware) MOption {
 	return func(i *manager) {
 		runs := make([]Handle, 0)
@@ -73,7 +73,7 @@ func WithMMiddleware(m ...Middleware) MOption {
 	}
 }
 
-//WithHandleCloseErr Handle close err
+// WithHandleCloseErr Handle close err
 func WithHandleCloseErr(f func(err error)) MOption {
 	return func(i *manager) {
 		i.closeErr = f
@@ -123,7 +123,6 @@ func (m *manager) Close() error {
 
 func chain(handleFunc ...Handle) Handle {
 	n := len(handleFunc)
-
 	if n > 1 {
 		lastI := n - 1
 		return func(ctx context.Context, next Run) error {
