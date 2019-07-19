@@ -3,12 +3,3 @@ language: go
 go:
 - 1.x
 - 1.12.x
-
-before_install:
-- go mod download
-- go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-
-scripts:
-- go test ./...
-- golangci-lint run -c ./.golangci.yml
-
