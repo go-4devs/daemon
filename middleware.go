@@ -17,13 +17,21 @@ func NewMiddleware(run, clFnc Handle) Middleware {
 func RetryMiddleware(max uint8, handleRetry func(err error) error) Middleware {
 	var retry uint8
 	return NewMiddleware(func(ctx context.Context, next Run) error {
-		err := next(ctx)
-		if err != nil {
+		if err := next(ctx); err != nil {
 			retry++
+			if retry >= max {
+				return handleRetry(err)
+			}
+			return err
 		}
-		if retry >= max {
-			return handleRetry(err)
-		}
-		return err
+		retry = 0
+		return nil
+	}, nil)
+}
+
+// RunOnceMiddleware run once and stopped job
+func RunOnceMiddleware() Middleware {
+	return NewMiddleware(func(ctx context.Context, next Run) error {
+		return StopJob(next(ctx))
 	}, nil)
 }

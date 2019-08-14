@@ -68,7 +68,9 @@ func (o *config) Reload(s func(time.Time) time.Duration) {
 }
 
 func (o *config) IsProcessed(err error) bool {
-	o.hErr(err)
+	if err != nil {
+		o.hErr(err)
+	}
 	switch tr := err.(type) {
 	case *stop:
 		return false
